@@ -3,7 +3,9 @@
 This package adds Go Notebook support to [Apache ECharts](https://echarts.apache.org/en/index.html)
 using [GoNB](https://github.com/janpfeifer/gonb) Jupyter kernel and [github.com/go-echarts/go-echarts](https://github.com/go-echarts/go-echarts).
 
-Example: 
+Example:
+
+*Note*: it is just a screen capture, in the Notebook, mouse over will interact with the charts.
 
 ```go
 import (
