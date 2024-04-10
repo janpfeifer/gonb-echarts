@@ -43,6 +43,8 @@ if err != nil {
 }
 ```
 
+![image](https://github.com/janpfeifer/gonb-echarts/assets/7460115/aa404a22-ad80-4e34-9a3b-5db5da94beca)
+
 ## Limitations
 
 Because the charts depends on Javascript, they won't display in Github.
