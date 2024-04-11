@@ -17,12 +17,13 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
-go.work
-go.work.sum
-
 # Notebook checkpoints
 .ipynb_checkpoints/
 jupyter_files/
 Untitled*.ipynb
 experimental.ipynb
+
+# Go workspace file
+go.work
+go.work.sum
+

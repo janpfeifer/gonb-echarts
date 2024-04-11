@@ -69,7 +69,7 @@ func parseRendering(chart *charts.BaseConfiguration) (data renderData, err error
 }
 
 type SupportedCharts interface {
-	charts.Bar
+	charts.Bar | charts.Line
 }
 
 // moduleName tries to guess the module name from a javascript source.
@@ -94,6 +94,8 @@ func Display[T SupportedCharts](chart *T, style string) error {
 	cAny := any(chart)
 	switch c := cAny.(type) {
 	case *charts.Bar:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Line:
 		data, err = parseRendering(&c.BaseConfiguration)
 	default:
 		err = errors.Errorf("unsupported EChart type %T", cAny)
