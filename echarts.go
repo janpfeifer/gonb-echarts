@@ -69,7 +69,10 @@ func parseRendering(chart *charts.BaseConfiguration) (data renderData, err error
 }
 
 type SupportedCharts interface {
-	charts.Bar | charts.Line
+	charts.Bar | charts.Bar3D | charts.BoxPlot | charts.Custom | charts.EffectScatter | charts.Funnel |
+		charts.Gauge | charts.Geo | charts.Graph | charts.HeatMap | charts.Kline | charts.Line3D | charts.Line | charts.Liquid |
+		charts.Map | charts.Parallel | charts.Pie | charts.Radar | charts.Sankey | charts.Scatter3D | charts.Scatter | charts.Sunburst |
+		charts.Surface3D | charts.ThemeRiver | charts.Tree | charts.TreeMap | charts.WordCloud
 }
 
 // moduleName tries to guess the module name from a javascript source.
@@ -95,7 +98,57 @@ func Display[T SupportedCharts](chart *T, style string) error {
 	switch c := cAny.(type) {
 	case *charts.Bar:
 		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Bar3D:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.BoxPlot:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Custom:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.EffectScatter:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Funnel:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Gauge:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Geo:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Graph:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.HeatMap:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Kline:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Line3D:
+		data, err = parseRendering(&c.BaseConfiguration)
 	case *charts.Line:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Liquid:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Map:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Parallel:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Pie:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Radar:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Sankey:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Scatter3D:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Scatter:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Sunburst:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Surface3D:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.ThemeRiver:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.Tree:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.TreeMap:
+		data, err = parseRendering(&c.BaseConfiguration)
+	case *charts.WordCloud:
 		data, err = parseRendering(&c.BaseConfiguration)
 	default:
 		err = errors.Errorf("unsupported EChart type %T", cAny)
