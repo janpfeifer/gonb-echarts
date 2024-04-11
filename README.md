@@ -47,6 +47,41 @@ if err != nil {
 
 ![image](https://github.com/janpfeifer/gonb-echarts/assets/7460115/aa404a22-ad80-4e34-9a3b-5db5da94beca)
 
+```go
+func toLineData[In any](data []In) []opts.LineData {
+    r := make([]opts.LineData, len(data))
+    for ii, v := range data {
+        r[ii].Value = v 
+    }
+    return r
+}
+
+%%
+stackedLine := charts.NewLine()
+stackedLine.SetGlobalOptions(
+    charts.WithTitleOpts(opts.Title{Title: "Stacked Line",}), 
+    charts.WithTooltipOpts(opts.Tooltip{Show:true, Trigger: "axis"}),
+)
+seriesOpt := charts.WithLineChartOpts(opts.LineChart{
+    Stack: "Total",
+    ShowSymbol: true,
+})
+
+stackedLine.
+    SetGlobalOptions(charts.WithYAxisOpts(opts.YAxis{Type: "value"}))
+stackedLine.
+    SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}). 
+    AddSeries("Email", toLineData([]int{120, 132, 101, 134, 90, 230, 210}), seriesOpt).
+    AddSeries("Union Ads", toLineData([]int{220, 182, 191, 234, 290, 330, 310}), seriesOpt).
+    AddSeries("Video Ads", toLineData([]int{150, 232, 201, 154, 190, 330, 410}), seriesOpt).
+    AddSeries("Direct", toLineData([]int{320, 332, 301, 334, 390, 330, 320}), seriesOpt).
+    AddSeries("Search Engine", toLineData([]int{820, 932, 901, 934, 1290, 1330, 1320}), seriesOpt)
+
+must.M(gonb_echarts.Display(stackedLine, "width: 1024px; height:400px; background: white;"))
+```
+
+![image](https://github.com/janpfeifer/gonb-echarts/assets/7460115/964b253b-f1c0-4a10-9a88-5e1a89327233)
+
 ## Limitations
 
 Because the charts depends on Javascript, they won't display in Github.
