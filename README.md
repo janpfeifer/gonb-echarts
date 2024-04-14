@@ -62,6 +62,7 @@ if err != nil {
 
 ### Geo Map example
 
+![image](https://github.com/janpfeifer/gonb-echarts/assets/7460115/780950af-87cf-47e5-837e-ae616eefe3f4)
 
 ## Limitations
 
