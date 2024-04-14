@@ -1,4 +1,4 @@
-# [Apache ECharts](https://echarts.apache.org/en/index.html) for Jupyter Notebooks with Go 
+# [Apache ECharts](https://echarts.apache.org/en/index.html) for Jupyter Notebooks with Go ([Examples](https://janpfeifer.github.io/gonb-echarts/))
 
 This package adds Go Notebook support to [Apache ECharts](https://echarts.apache.org/en/index.html)
 using [GoNB](https://github.com/janpfeifer/gonb) Jupyter kernel and [github.com/go-echarts/go-echarts](https://github.com/go-echarts/go-echarts).
@@ -7,14 +7,11 @@ It defines two methods to display [go-echarts](https://github.com/go-echarts/go-
 that immediately display the chart, and `DisplayContent` that returns the HTML content needed to generate
 the chart -- useful for instance if the chart needs to be laid out inside other HTML content.
 
-See include `examples.ipynb` for examples.
+See included [examples](https://janpfeifer.github.io/gonb-echarts/) -- Notebook file (without the rendered images) in [`examples.ipynb`](https://github.com/janpfeifer/gonb-echarts/blob/main/examples.ipynb).
 
 ## Screenshots:
 
-*Note*: These are just frozen screen captures. See the [Examples Notebook](https://janpfeifer.github.io/gonb-echarts/)
-in Jupyter Notebook, mouse over will interact with the charts. 
-Unfortunately, GitHub won't display the plots in the [notebook itself](https://github.com/janpfeifer/gonb-echarts/blob/main/examples.ipynb) because it won't
-execute javascript in the notebooks, so we linked above [the HTML rendering with javascript](https://janpfeifer.github.io/gonb-echarts/).
+**Note**: being just screenshots these are not animated -- see [examples](https://janpfeifer.github.io/gonb-echarts/) for animated version.
 
 ### Bar Chart (with code)
 
