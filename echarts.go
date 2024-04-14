@@ -1,18 +1,25 @@
 // Package echarts provides a convenient rendering of [go-echarts](https://github.com/go-echarts/go-echarts)
 // charts and plots for GoNB. It is a wrapper for [Apache ECharts](https://echarts.apache.org/en/index.html).
+//
+// It defines two methods to display [go-echarts](https://github.com/go-echarts/go-echarts) charts: `Display`
+// that immediately display the chart, and `DisplayContent` that returns the HTML content needed to generate
+// the chart -- useful for instance if the chart needs to be laid out inside other HTML content.
+//
+// See include `examples.ipynb` for examples.
 package echarts
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/janpfeifer/gonb/gonbui"
-	"github.com/janpfeifer/gonb/gonbui/dom"
 	"github.com/pkg/errors"
 	"io"
 	"path"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 // Renderer interface for echarts that implement the `Render` method.
@@ -20,15 +27,16 @@ type Renderer interface {
 	Render(w io.Writer) error
 }
 
+// renderData parsed from go-echarts rendering, and re-used for GoNB rendering.
 type renderData struct {
-	// chartId should be used by the container div that will hold the chart.
-	chartId string
+	// ChartId should be used by the container div that will hold the chart.
+	ChartId string
 
 	// Script sources.
-	jsAssetsSrc []string
+	JsAssetsSrc []string
 
-	// Javascript code for the specific chart
-	jsAssetsCode []string
+	// JsAssetsCode code for the specific chart
+	JsAssetsCode []string
 }
 
 // parseRendering renders given the chart and extract the information needed to re-render it in GoNB.
@@ -36,7 +44,7 @@ type renderData struct {
 // This is implemented by rendering it to an HTML page (with `<head>` and `<body>` tags) that is then
 // parsed
 func parseRendering(chart *charts.BaseConfiguration) (data renderData, err error) {
-	data.chartId = chart.ChartID
+	data.ChartId = chart.ChartID
 	var buffer bytes.Buffer
 	err = chart.Render(&buffer)
 	if err != nil {
@@ -58,10 +66,10 @@ func parseRendering(chart *charts.BaseConfiguration) (data renderData, err error
 		if !exists {
 			jsCode := selection.Text()
 			if jsCode != "" {
-				data.jsAssetsCode = append(data.jsAssetsCode, jsCode)
+				data.JsAssetsCode = append(data.JsAssetsCode, jsCode)
 			}
 		} else {
-			data.jsAssetsSrc = append(data.jsAssetsSrc, src)
+			data.JsAssetsSrc = append(data.JsAssetsSrc, src)
 		}
 	})
 	_ = doc
@@ -88,12 +96,106 @@ func moduleName(src string) string {
 	return module
 }
 
+var displayTmpl = template.Must(template.New("display").Parse(`
+(() => {
+	let echartsFn = function() {
+	{{range .JsAssetsCode}}
+		{{.}}
+	{{end}}
+	}
+
+	let echartsSrcs = [
+	{{range .JsAssetsSrc}}
+		"{{.}}",	
+	{{end}}
+	];
+
+	function loadScriptsThenExecute(scripts, fn) {
+		if (scripts.length == 0) {
+			// Nothing to load, execute immediately.
+			fn();
+			return;
+		}
+
+		// Keep track of loaded scripts
+		let loadedCount = 0;
+		const head = document.head;
+		
+		// Function to handle successful script loading
+		const scriptLoaded = () => {
+			loadedCount++;
+			if (loadedCount === scripts.length) {
+				fn(); // Execute the callback function when all scripts are loaded
+			}
+		};
+		
+		for (const src of scripts) {
+			// Check if script is already loaded
+			const existingScript = document.querySelector('script[src="'+src+'"]');
+			if (existingScript) {
+				// Script already loaded. 
+				scriptLoaded(); // Proceed as if loaded
+			} else if (typeof requirejs === "function") {
+				require([src], function(loadedModule) {
+        			// Note: 'loadedModule' will contain the exports from the script, if any.
+        			scriptLoaded(); 
+				});
+			} else {
+				// Create the script element
+				const script = document.createElement('script');
+				script.async = false;  // Order matters, this must be false.
+				script.src = src;
+				script.onload = scriptLoaded;
+				script.onerror = () => console.error('Failed to load script: '+src);
+				head.appendChild(script);
+			}
+		}
+	}
+
+	if (typeof requirejs === "function") {
+		console.log("Using RequireJS");
+		let src = echartsSrcs.shift();  // The first source is echarts, which must be loaded with RequireJS. 
+		// Use RequireJS to load module.
+		let srcWithoutExtension = src.substring(0, src.lastIndexOf(".js"));
+		requirejs.config({
+			paths: {
+				'echarts': srcWithoutExtension
+			}
+		});
+		require(['echarts'], function(echarts) {
+			window.echarts = echarts;  // Define echarts globally.
+			loadScriptsThenExecute(echartsSrcs, echartsFn);  // Load rest of scripts.	
+		});
+		return
+
+	} else {
+		console.log("Not using RequireJS");
+		loadScriptsThenExecute(echartsSrcs, echartsFn);
+	}
+
+})();
+`))
+
 // Display displays the EChart in GoNB.
 // The parameter `style` is used for the `<div>` tag that holds the plot. Typically, one will want to set the
 // `width` and `height`. E.g.: `style="width: 1024px; height:600px; background: white;"`.
 func Display[T SupportedCharts](chart *T, style string) error {
+	html, err := DisplayContent(chart, style)
+	if err != nil {
+		return err
+	}
+	gonbui.DisplayHtml(html)
+	return nil
+}
+
+// DisplayContent returns the HTML content (including a `<script>` tag) that displays the EChart in GoNB.
+// One can used [Display] to display it directly, but if one wants to compose or change the layout, one can use
+// this instead.
+//
+// The parameter `style` is used for the `<div>` tag that holds the plot. Typically, one will want to set the
+// `width` and `height`. E.g.: `style="width: 1024px; height:600px; background: white;"`.
+func DisplayContent[T SupportedCharts](chart *T, style string) (html string, err error) {
 	var data renderData
-	var err error
 	cAny := any(chart)
 	switch c := cAny.(type) {
 	case *charts.Bar:
@@ -154,32 +256,22 @@ func Display[T SupportedCharts](chart *T, style string) error {
 		err = errors.Errorf("unsupported EChart type %T", cAny)
 	}
 	if err != nil {
-		return err
+		return
 	}
-	if len(data.jsAssetsSrc) == 0 || len(data.jsAssetsCode) == 0 {
-		return errors.New("failed to parse javascript of go-echarts rendering")
+	if len(data.JsAssetsSrc) == 0 || len(data.JsAssetsCode) == 0 {
+		err = errors.New("failed to parse javascript of go-echarts rendering")
+		return
 	}
 
-	// Create containing DIV
-	gonbui.DisplayHtmlf(`<div id="%s" style="%s"></div>`, data.chartId, style)
+	// Generate code.
+	var code bytes.Buffer
+	err = displayTmpl.Execute(&code, &data)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to executed template of javascript code to build the echart")
+		return
+	}
 
-	// Inject needed javascript code. The preamble sets `echarts` from the RequireJS module.
-	preamble := `
-	if (typeof echarts === 'undefined') {
-		window.echarts = module;
-	}`
-	code := strings.Join(append([]string{preamble}, data.jsAssetsCode...), "\n")
-	// Include the first n-1 script sources.
-	var noAttr map[string]string
-	for ii := 0; ii < len(data.jsAssetsSrc)-1; ii++ {
-		src := data.jsAssetsSrc[ii]
-		if err = dom.LoadScriptOrRequireJSModuleAndRun(moduleName(src), src, noAttr, ""); err != nil {
-			return err
-		}
-	}
-	lastSrc := data.jsAssetsSrc[len(data.jsAssetsSrc)-1]
-	if err = dom.LoadScriptOrRequireJSModuleAndRun(moduleName(lastSrc), lastSrc, noAttr, code); err != nil {
-		return err
-	}
-	return nil
+	// Render HTML.
+	html = fmt.Sprintf(`<div id="%s" style="%s"></div><script>%s</script>`, data.ChartId, style, code.String())
+	return
 }
