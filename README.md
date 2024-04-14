@@ -11,8 +11,10 @@ See include `examples.ipynb` for examples.
 
 ## Screenshots:
 
-*Note*: These are just frozen screen captures. If you open the [Examples Notebook](https://github.com/janpfeifer/gonb-echarts/blob/main/examples.ipynb) in Jupyter Notebook, mouse over will interact with the charts. Unfortunately, GitHub won't display the plots in the [notebook itself](https://github.com/janpfeifer/gonb-echarts/blob/main/examples.ipynb) because it won't
-execute javascript in the notebooks.
+*Note*: These are just frozen screen captures. See the [Examples Notebook](https://janpfeifer.github.io/gonb-echarts/)
+in Jupyter Notebook, mouse over will interact with the charts. 
+Unfortunately, GitHub won't display the plots in the [notebook itself](https://github.com/janpfeifer/gonb-echarts/blob/main/examples.ipynb) because it won't
+execute javascript in the notebooks, so we linked above [the HTML rendering with javascript](https://janpfeifer.github.io/gonb-echarts/).
 
 ### Bar Chart (with code)
 
